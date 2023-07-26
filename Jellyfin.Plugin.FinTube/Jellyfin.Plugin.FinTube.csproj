@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Jellyfin.Plugin.FinTube</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Controller" Version="10.8.4" />
+    <PackageReference Include="Jellyfin.Model" Version="10.8.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\configPage.html" />
+  </ItemGroup>
+
+  <Target Name="PreparePlugin" AfterTargets="Build">
+    <Copy SourceFiles="..\Assets\logo.png" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="..\Assets\meta.json" DestinationFolder="$(OutDir)" />
+  </Target>
+
+</Project>
