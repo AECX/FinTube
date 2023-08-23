@@ -6,7 +6,7 @@
         "description": "Lets you download YT videos as mp4 or mp3 with support for id3v2 tags. Requires yt-dlp/youtube-dl and (optionally) id3v2.",
         "owner": "Maurice 'AECX' Henke",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/AECX/FinTube/master/assets/logo.png",
+        "imageUrl": "https://raw.githubusercontent.com/AECX/FinTube/v1.0/Assets/logo.png",
         "versions": [
             {
                 "version": "1.0.0.0",
