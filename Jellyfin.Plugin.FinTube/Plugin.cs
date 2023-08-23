@@ -23,6 +23,8 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         : base(applicationPaths, xmlSerializer)
     {
         Instance = this;
+
+        ConfigurationChanged += OnConfigurationChanged;
     }
 
     /// <inheritdoc />
@@ -35,6 +37,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// Gets the current plugin instance.
     /// </summary>
     public static Plugin? Instance { get; private set; }
+    public PluginConfiguration PluginConfiguration => Configuration;
 
     /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
@@ -45,7 +48,18 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             {
                 Name = this.Name,
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.configPage.html", GetType().Namespace)
+            },
+            
+            new PluginPageInfo
+            {
+                Name = @"FinTubeDownload",
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Pages.downloadPage.html", GetType().Namespace),
+                EnableInMainMenu = true
             }
         };
+    }
+
+    private void OnConfigurationChanged(object? sender, BasePluginConfiguration e)
+    {
     }
 }

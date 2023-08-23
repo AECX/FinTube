@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Jellyfin.Plugin.FinTube</RootNamespace>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -16,6 +14,7 @@
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Pages\downloadPage.html" />
   </ItemGroup>
 
   <Target Name="PreparePlugin" AfterTargets="Build">
