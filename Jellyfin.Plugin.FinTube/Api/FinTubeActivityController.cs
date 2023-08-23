@@ -86,7 +86,7 @@ public class FinTubeActivityController : ControllerBase
                 String targetFilename;
                 String targetExtension = (data.audioonly ? @".mp3" : @".mp4");
                 
-                if(hasTags && data.title.Length > 1) // Use title Tag for filename
+                if(data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
                     targetFilename = System.IO.Path.Combine(data.targetfolder, $"{data.title}");
                 else // Use YTID as filename
                     targetFilename = System.IO.Path.Combine(data.targetfolder, $"{data.ytid}");
@@ -101,7 +101,7 @@ public class FinTubeActivityController : ControllerBase
                 if(data.audioonly)
                     args = $"-x --audio-format mp3 -o \"{targetFilename}.%(ext)s\" {data.ytid}";
                 else
-                    args = $"-f mp4 -o \"%(title)s.%(ext)s\" {data.ytid}";
+                    args = $"-f mp4 -o \"{targetFilename}-%(title)s.%(ext)s\" {data.ytid}";
 
                 status += $"Exec: {config.exec_YTDL} {args}<br>";
 
