@@ -1,0 +1,153 @@
+<div data-role="page" class="page type-interior pluginConfigurationPage"
+	 data-require="emby-button,emby-select,emby-checkbox">
+	<div data-role="content">
+		<div class="content-primary">
+			<h2>FinTube Download</h2>
+			<span>Make sure to configure FinTube first.</span>
+
+			<div class="content-primary">
+				<img id="preview" src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" />
+
+				<form id="FinTubeDLForm">
+
+					<div class="inputContainer">
+						<label class="inputLabel">YouTube Link or ID</label>
+						<input id="fintube-ytid" class="emby-input" name="fintube-ytid" value="dQw4w9WgXcQ" />
+					</div>
+
+					<div class="selectContainer">
+						<label class="inputLabel" for="fintube-targetfolder">Target Folder</label>
+						<input id="fintube-targetfolder" class="emby-input" name="fintube-targetfolder" value="/opt/media/" />
+						<div class="fieldDescription">Your Media file will be stored here assuming JellyFin has Write Permissions, this will also recursively create the folder(s) required</div>
+					</div>
+
+
+					<div class="checkboxContainer checkboxContainer-withDescription">
+						<label class="emby-checkbox-label">
+							<input id="fintube-audioonly" name="audioonly" type="checkbox" is="emby-checkbox" data-embycheckbox="true" class="emby-checkbox">
+							<span class="checkboxLabel">Audio Only</span>
+						<span class="checkboxOutline"><span class="material-icons checkboxIcon checkboxIcon-checked check" aria-hidden="true"></span><span class="material-icons checkboxIcon checkboxIcon-unchecked " aria-hidden="true"></span></span></label>
+						<div class="fieldDescription">Check this if you want to store as mp3, otherwise the file is saved in mp4</div>
+					</div>
+
+					<div id="fintube-audiosettings" hidden>						
+						<h3>Audio Settings (Require id3v2 to be configured properly)</h3>
+						
+						<div class="inputContainer">
+							<label class="inputLabel">Artist</label>
+							<input id="fintube-artist" class="emby-input" name="fintube-artist" />
+						</div>
+
+						<div class="inputContainer">
+							<label class="inputLabel">Album</label>
+							<input id="fintube-album" class="emby-input" name="fintube-album" />
+						</div>
+
+						<div class="inputContainer">
+							<label class="inputLabel">Title</label>
+							<input id="fintube-title" class="emby-input" name="fintube-title" />
+						</div>
+
+						<div class="inputContainer">
+							<label class="inputLabel">Track #</label>
+							<input id="fintube-track" type="number" emby-input" name="fintube-track" />
+						</div>
+
+					</div>
+
+					<button id="fintube-submit" is="emby-button" type="submit" class="raised button-submit block emby-button">
+						<span>Submit</span>
+					</button>
+
+					<div id="fintube-result">
+
+					</div>
+
+				</form>
+
+				<script type="text/javascript">
+					window.ApiClient.sendCustomQuery = function (url_to_get, query_data) {
+						var post_data = JSON.stringify(query_data);
+						console.log("sendCustomQuery url  = " + url_to_get);
+						console.log("sendCustomQuery data = " + post_data);
+						return this.ajax({
+							type: "POST",
+							url: url_to_get,
+							dataType: "json",
+							data: post_data,
+							contentType: 'application/json'
+						});
+					};
+
+					function parseYT(linkorid) {
+						let id;
+
+						if (linkorid.startsWith("http"))
+						{
+							let regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+							let match = linkorid.match(regExp);
+
+							id = (match && match[2].length == 11) ? match[2] : false;
+						}
+						else
+						{
+							id = linkorid;
+						}
+
+						return id;
+					}
+
+					function getfintubeValue(id) {
+						return document.getElementById("fintube-" + id).value;
+					}
+
+					document.getElementById('preview').onload = function(e) {
+						let submitbtn = document.getElementById('fintube-submit');
+						
+						if(this.width == 120)
+							submitbtn.setAttribute('disabled', true);
+						else
+							submitbtn.removeAttribute('disabled');
+					}
+
+					document.getElementById('fintube-ytid')
+						.addEventListener("change", function() {
+							let id = parseYT(this.value);
+							document.getElementById('preview').src = "https://img.youtube.com/vi/" + id + "/mqdefault.jpg";
+						});
+
+					document.getElementById('fintube-audioonly')
+						.addEventListener("change", function() {
+							document.getElementById('fintube-audiosettings').hidden = !this.checked;
+						});
+
+					document.querySelector('#FinTubeDLForm')
+                		.addEventListener('submit', function(e) {
+							e.preventDefault();
+
+							document.getElementById('fintube-result').innerHTML = "";
+
+							let payload = {
+								"ytid": 		parseYT(getfintubeValue("ytid")),
+								"targetfolder": getfintubeValue("targetfolder"),
+								"audioonly": 	document.getElementById("fintube-audioonly").checked,
+								"artist": 		getfintubeValue("artist"),
+								"album": 		getfintubeValue("album"),
+								"title": 		getfintubeValue("title"),
+								"track":		Number(getfintubeValue("track"))
+							}
+						
+
+						let url = "fintube/submit_dl";
+						url = window.ApiClient.getUrl(url);
+
+						window.ApiClient.sendCustomQuery(url, payload).then(function(result) {
+							var message = result["message"];
+							document.getElementById('fintube-result').innerHTML = message;
+						});
+					});
+				</script>
+			</div>
+        </div>
+    </div> 
+</div>
