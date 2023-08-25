@@ -1,8 +1,8 @@
-# TubeFin
+# FinTube
 
 Easily add content from YouTube to your Jellyfin installation
 
-![](assets/20230726_113636_logo.png)
+![](https://raw.githubusercontent.com/AECX/FinTube/master/Assets/logo.png)
 
 ## Dependencies
 
