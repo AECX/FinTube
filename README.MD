@@ -19,7 +19,7 @@ For other OS please check your package manager.
 
 ### Add my Repository
 
-1. In your Admin Dashboard navigate to "Pluginsplugin"
+1. In your Admin Dashboard navigate to "Plugins"
 2. Switch to the "Repositories" tab
 3. Click "+" and add the Repository `https://raw.githubusercontent.com/AECX/FinTube/master/manifest.json`
    Name it "HenkeGG" or "AECX" - Or whatever helps you remember
