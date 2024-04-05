@@ -27,18 +27,21 @@ public class FinTubeActivityController : ControllerBase
         private readonly IFileSystem _fileSystem;
         private readonly IServerConfigurationManager _config;
         private readonly IUserManager _userManager;
+        private readonly ILibraryManager _libraryManager;
 
         public FinTubeActivityController(
             ILoggerFactory loggerFactory,
             IFileSystem fileSystem,
             IServerConfigurationManager config,
-            IUserManager userManager)
+            IUserManager userManager,
+            ILibraryManager libraryManager)
         {
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<FinTubeActivityController>();
             _fileSystem = fileSystem;
             _config = config;
             _userManager = userManager;
+            _libraryManager = libraryManager;
 
             _logger.LogInformation("FinTubeActivityController Loaded");
         }
@@ -46,8 +49,11 @@ public class FinTubeActivityController : ControllerBase
         public class FinTubeData
         {
             public string ytid {get; set;} = "";
-            public string targetfolder{get; set;} = "/tmp";
+            public string targetlibrary{get; set;} = "";
+            public string targetfolder{get; set;} = "";
             public bool audioonly{get; set;} = false;
+            public bool preferfreeformat{get; set;} = false;
+            public string videoresolution{get; set;} = "";
             public string artist{get; set;} = "";
             public string album{get; set;} = "";
             public string title{get; set;} = "";
@@ -61,7 +67,7 @@ public class FinTubeActivityController : ControllerBase
         {
             try
             {
-                _logger.LogInformation("FinTubeDownload : {ytid} to {targetfoldeer} audio only: {audioonly}", data.ytid, data.targetfolder, data.audioonly);
+                _logger.LogInformation("FinTubeDownload : {ytid} to {targetfoldeer}, prefer free format: {preferfreeformat} audio only: {audioonly}", data.ytid, data.targetfolder, data.preferfreeformat, data.audioonly);
 
                 Dictionary<string, object> response = new Dictionary<string, object>();
                 PluginConfiguration? config = Plugin.Instance.Configuration;
@@ -72,24 +78,28 @@ public class FinTubeActivityController : ControllerBase
                 if(!System.IO.File.Exists(config.exec_YTDL))
                     throw new Exception("YT-DL Executable configured incorrectly");
                 
-
                 bool hasid3v2 = System.IO.File.Exists(config.exec_ID3);
                 
+
+                // Ensure proper / separator
+                data.targetfolder = String.Join("/", data.targetfolder.Split("/", StringSplitOptions.RemoveEmptyEntries));
+                String targetPath = data.targetlibrary.EndsWith("/") ? data.targetlibrary + data.targetfolder : data.targetlibrary + "/" + data.targetfolder;
                 // Create Folder if it doesn't exist
-                if(!System.IO.Directory.CreateDirectory(data.targetfolder).Exists)
+                if(!System.IO.Directory.CreateDirectory(targetPath).Exists)
                     throw new Exception("Directory could not be created");
+
 
                 // Check for tags
                 bool hasTags = 1 < (data.title.Length + data.album.Length + data.artist.Length + data.track.ToString().Length);
 
                 // Save file with ytdlp as mp4 or mp3 depending on audioonly
                 String targetFilename;
-                String targetExtension = (data.audioonly ? @".mp3" : @".mp4");
+                String targetExtension = (data.preferfreeformat ? (data.audioonly ? @".opus" : @".webm") : (data.audioonly ? @".mp3" : @".mp4"));
                 
                 if(data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
-                    targetFilename = System.IO.Path.Combine(data.targetfolder, $"{data.title}");
+                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.title}");
                 else // Use YTID as filename
-                    targetFilename = System.IO.Path.Combine(data.targetfolder, $"{data.ytid}");
+                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.ytid}");
 
                 // Check if filename exists
                 if(System.IO.File.Exists(targetFilename))
@@ -99,9 +109,24 @@ public class FinTubeActivityController : ControllerBase
 
                 String args;
                 if(data.audioonly)
-                    args = $"-x --audio-format mp3 -o \"{targetFilename}.%(ext)s\" {data.ytid}";
+                {
+                    args = "-x";
+                    if(data.preferfreeformat)
+                        args += " --prefer-free-format";
+                    else
+                        args += " --audio-format mp3";
+                    args += $" -o \"{targetFilename}.%(ext)s\" {data.ytid}";
+                }
                 else
-                    args = $"-f mp4 -o \"{targetFilename}-%(title)s.%(ext)s\" {data.ytid}";
+                {
+                    if(data.preferfreeformat)
+                        args = "--prefer-free-format";
+                    else
+                        args = "-f mp4";
+                    if(!string.IsNullOrEmpty(data.videoresolution))
+                        args += $" -S res:{data.videoresolution}";
+                    args += $" -o \"{targetFilename}-%(title)s.%(ext)s\" {data.ytid}";
+                }
 
                 status += $"Exec: {config.exec_YTDL} {args}<br>";
 
@@ -124,6 +149,25 @@ public class FinTubeActivityController : ControllerBase
                 status += "<font color='green'>File Saved!</font>";
 
                 response.Add("message", status);
+                return Ok(response);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, e.Message);
+                return StatusCode(500, new Dictionary<string, object>() {{"message", e.Message}});
+            }
+        }
+
+        [HttpGet("libraries")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<Dictionary<string, object>> FinTubeLibraries()
+        {
+            try
+            {
+                _logger.LogInformation("FinTubeDLibraries count: {count}", _libraryManager.GetVirtualFolders().Count);
+
+                Dictionary<string, object> response = new Dictionary<string, object>();
+                response.Add("data", _libraryManager.GetVirtualFolders().Select(i => i.Locations).ToArray());
                 return Ok(response);
             }
             catch(Exception e)

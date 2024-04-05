@@ -16,11 +16,25 @@
 					</div>
 
 					<div class="selectContainer">
-						<label class="inputLabel" for="fintube-targetfolder">Target Folder</label>
-						<input id="fintube-targetfolder" class="emby-input" name="fintube-targetfolder" value="/opt/media/" />
-						<div class="fieldDescription">Your Media file will be stored here assuming JellyFin has Write Permissions, this will also recursively create the folder(s) required</div>
+						<label class="inputLabel" for="fintube-targetlibrary">Target library</label>
+						<select id="fintube-targetlibrary" class="emby-input" name="fintube-targetlibrary">
+						</select>
+						<div class="fieldDescription">Base library destination path to download file</div>
 					</div>
 
+					<div class="selectContainer">
+						<label class="inputLabel" for="fintube-targetfolder">Target Folder</label>
+						<input id="fintube-targetfolder" class="emby-input" name="fintube-targetfolder" />
+						<div class="fieldDescription">Your Media file will be stored here assuming JellyFin has Write Permissions, this will also recursively create the folder(s) required<br />Relative path from target library (optional)</div>
+					</div>
+
+					<div class="checkboxContainer checkboxContainer-withDescription">
+						<label class="emby-checkbox-label">
+							<input id="fintube-preferfreeformat" name="preferfreeformat" type="checkbox" is="emby-checkbox" data-embycheckbox="true" class="emby-checkbox">
+							<span class="checkboxLabel">Prefer free format</span>
+						<span class="checkboxOutline"><span class="material-icons checkboxIcon checkboxIcon-checked check" aria-hidden="true"></span><span class="material-icons checkboxIcon checkboxIcon-unchecked " aria-hidden="true"></span></span></label>
+						<div class="fieldDescription">Will usually download audio as .opus and videos as .webm</div>
+					</div>
 
 					<div class="checkboxContainer checkboxContainer-withDescription">
 						<label class="emby-checkbox-label">
@@ -28,6 +42,23 @@
 							<span class="checkboxLabel">Audio Only</span>
 						<span class="checkboxOutline"><span class="material-icons checkboxIcon checkboxIcon-checked check" aria-hidden="true"></span><span class="material-icons checkboxIcon checkboxIcon-unchecked " aria-hidden="true"></span></span></label>
 						<div class="fieldDescription">Check this if you want to store as mp3, otherwise the file is saved in mp4</div>
+					</div>
+
+					<div id="fintube-videosettings">
+						<div class="selectContainer">
+							<label class="inputLabel" for="fintube-videoresolution">Video resolution</label>
+							<select id="fintube-videoresolution" class="emby-input" name="fintube-videoresolution">
+								<option value="">default</option>
+								<option value="240">240p</option>
+								<option value="360">360p</option>
+								<option value="480">480p</option>
+								<option value="720">720p</option>
+								<option value="1080" selected>1080p</option>
+								<option value="1440">2k</option>
+								<option value="2160">4k</option>
+							</select>
+							<div class="fieldDescription">Maximum desired resolution if available. Set to default if you want to download the best available.</div>
+						</div>
 					</div>
 
 					<div id="fintube-audiosettings" hidden>						
@@ -119,6 +150,7 @@
 					document.getElementById('fintube-audioonly')
 						.addEventListener("change", function() {
 							document.getElementById('fintube-audiosettings').hidden = !this.checked;
+							document.getElementById('fintube-videosettings').hidden = this.checked;
 						});
 
 					document.querySelector('#FinTubeDLForm')
@@ -128,13 +160,16 @@
 							document.getElementById('fintube-result').innerHTML = "";
 
 							let payload = {
-								"ytid": 		parseYT(getfintubeValue("ytid")),
-								"targetfolder": getfintubeValue("targetfolder"),
-								"audioonly": 	document.getElementById("fintube-audioonly").checked,
-								"artist": 		getfintubeValue("artist"),
-								"album": 		getfintubeValue("album"),
-								"title": 		getfintubeValue("title"),
-								"track":		Number(getfintubeValue("track"))
+								"ytid": 				parseYT(getfintubeValue("ytid")),
+								"targetlibrary":		getfintubeValue("targetlibrary"),
+								"targetfolder": 		getfintubeValue("targetfolder"),
+								"videoresolution":		getfintubeValue("videoresolution"),
+								"audioonly": 			document.getElementById("fintube-audioonly").checked,
+								"preferfreeformat": 	document.getElementById("fintube-preferfreeformat").checked,
+								"artist": 				getfintubeValue("artist"),
+								"album": 				getfintubeValue("album"),
+								"title": 				getfintubeValue("title"),
+								"track":				Number(getfintubeValue("track"))
 							}
 						
 
@@ -146,6 +181,28 @@
 							document.getElementById('fintube-result').innerHTML = message;
 						});
 					});
+
+					window.ApiClient.getLibraries = function() {
+						const url = window.ApiClient.getUrl("fintube/libraries");
+						return this.ajax({
+							type: "GET",
+							url: url,
+							dataType: "json",
+							contentType: 'application/json'
+						});
+					};
+
+					(function() {
+						window.ApiClient.getLibraries().then(function(result) {
+							let librariesHtml = ""
+							for (let library of result.data) {
+								for (let location of library) {
+									librariesHtml += '<option value="' + location + '">' + location + '</option>'
+								}
+							}
+							document.getElementById('fintube-targetlibrary').innerHTML = librariesHtml;
+						});
+					})();
 				</script>
 			</div>
         </div>
