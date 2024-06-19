@@ -8,7 +8,7 @@
   "owner": "AECX",
   "targetAbi": "10.8.1.0",
   "timestamp": "2023-07-25T12:47:28.0000000Z",
-  "version": "1.0.0.0",
+  "version": "1.0.1.0",
   "status": "Active",
   "autoUpdate": false,
   "imagePath": "/var/lib/jellyfin/plugins/TubeFin/logo.png"
