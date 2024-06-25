@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.FinTube.Api;
 
 [ApiController]
-[Authorize(Policy = "DefaultAuthorization")]
+[Authorize(Roles = "Administrator")]
 [Route("fintube")]
 [Produces(MediaTypeNames.Application.Json)]
 public class FinTubeActivityController : ControllerBase
