@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Jellyfin.Plugin.FinTube</RootNamespace>
+	<Version>1.0.1.0</Version>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
