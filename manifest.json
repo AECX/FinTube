@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/AECX/FinTube/master/Assets/logo.png",
           "versions": [
             {
+              "version": "1.1.0.0",
+              "changelog": "Added possibility to provide a custom filename",
+              "targetAbi": "10.8.10.0",
+              "sourceUrl": "https://github.com/AECX/FinTube/releases/download/v1.1.0.0/FinTube-1.1.0.0.zip",
+              "checksum": "e37c5cfdb8e0a186ff374574032c5f4a",
+              "timestamp": "2025-09-23T07:13:30Z"
+            },
+            {
               "version": "1.0.1.1",
               "changelog": "Fixed Version mismatch and libraries showing on DL page",
               "targetAbi": "10.8.10.0",
