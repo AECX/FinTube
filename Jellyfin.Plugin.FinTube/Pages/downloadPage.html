@@ -28,6 +28,12 @@
 						<div class="fieldDescription">Your Media file will be stored here assuming JellyFin has Write Permissions, this will also recursively create the folder(s) required<br />Relative path from target library (optional)</div>
 					</div>
 
+					<div class="inputContainer">
+						<label class="inputLabel" for="fintube-targetfilename">Target Filename</label>
+						<input id="fintube-targetfilename" class="emby-input" name="fintube-targetfilename" />
+						<div class="fieldDescription">This is the filename if you want to override the yt-dl(p) default (optional)</div>
+					</div>
+
 					<div class="checkboxContainer checkboxContainer-withDescription">
 						<label class="emby-checkbox-label">
 							<input id="fintube-preferfreeformat" name="preferfreeformat" type="checkbox" is="emby-checkbox" data-embycheckbox="true" class="emby-checkbox">
@@ -162,6 +168,7 @@
 							let payload = {
 								"ytid": 				parseYT(getfintubeValue("ytid")),
 								"targetlibrary":		getfintubeValue("targetlibrary"),
+								"targetfilename":		getfintubeValue("targetFilename"),
 								"targetfolder": 		getfintubeValue("targetfolder"),
 								"videoresolution":		getfintubeValue("videoresolution"),
 								"audioonly": 			document.getElementById("fintube-audioonly").checked,

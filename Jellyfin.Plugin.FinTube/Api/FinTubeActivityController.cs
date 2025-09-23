@@ -51,6 +51,7 @@ public class FinTubeActivityController : ControllerBase
             public string ytid {get; set;} = "";
             public string targetlibrary{get; set;} = "";
             public string targetfolder{get; set;} = "";
+            public string targetfilename { get; set; } = "";
             public bool audioonly{get; set;} = false;
             public bool preferfreeformat{get; set;} = false;
             public string videoresolution{get; set;} = "";
@@ -95,8 +96,10 @@ public class FinTubeActivityController : ControllerBase
                 // Save file with ytdlp as mp4 or mp3 depending on audioonly
                 String targetFilename;
                 String targetExtension = (data.preferfreeformat ? (data.audioonly ? @".opus" : @".webm") : (data.audioonly ? @".mp3" : @".mp4"));
-                
-                if(data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
+
+                if (!String.IsNullOrWhiteSpace(data.targetfilename))
+                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.targetfilename}");
+                else if (data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
                     targetFilename = System.IO.Path.Combine(targetPath, $"{data.title}");
                 else // Use YTID as filename
                     targetFilename = System.IO.Path.Combine(targetPath, $"{data.ytid}");
