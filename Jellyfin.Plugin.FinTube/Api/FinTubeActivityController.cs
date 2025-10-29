@@ -71,87 +71,107 @@ public class FinTubeActivityController : ControllerBase
                 _logger.LogInformation("FinTubeDownload : {ytid} to {targetfoldeer}, prefer free format: {preferfreeformat} audio only: {audioonly}", data.ytid, data.targetfolder, data.preferfreeformat, data.audioonly);
 
                 Dictionary<string, object> response = new Dictionary<string, object>();
-                PluginConfiguration? config = Plugin.Instance.Configuration;
-                String status = "";
+                PluginConfiguration? config = Plugin.Instance?.Configuration;
 
-
-                // check binaries
-                if(!System.IO.File.Exists(config.exec_YTDL))
-                    throw new Exception("YT-DL Executable configured incorrectly");
-                
-                bool hasid3v2 = System.IO.File.Exists(config.exec_ID3);
-                
-
-                // Ensure proper / separator
-                data.targetfolder = String.Join("/", data.targetfolder.Split("/", StringSplitOptions.RemoveEmptyEntries));
-                String targetPath = data.targetlibrary.EndsWith("/") ? data.targetlibrary + data.targetfolder : data.targetlibrary + "/" + data.targetfolder;
-                // Create Folder if it doesn't exist
-                if(!System.IO.Directory.CreateDirectory(targetPath).Exists)
-                    throw new Exception("Directory could not be created");
-
-
-                // Check for tags
-                bool hasTags = 1 < (data.title.Length + data.album.Length + data.artist.Length + data.track.ToString().Length);
-
-                // Save file with ytdlp as mp4 or mp3 depending on audioonly
-                String targetFilename;
-                String targetExtension = (data.preferfreeformat ? (data.audioonly ? @".opus" : @".webm") : (data.audioonly ? @".mp3" : @".mp4"));
-
-                if (!String.IsNullOrWhiteSpace(data.targetfilename))
-                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.targetfilename}");
-                else if (data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
-                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.title}");
-                else // Use YTID as filename
-                    targetFilename = System.IO.Path.Combine(targetPath, $"{data.ytid}");
-
-                // Check if filename exists
-                if(System.IO.File.Exists(targetFilename))
-                    throw new Exception($"File {targetFilename} already exists");
-
-                status += $"Filename: {targetFilename}<br>";
-
-                String args;
-                if(data.audioonly)
+                if (config != null)
                 {
-                    args = "-x";
-                    if(data.preferfreeformat)
-                        args += " --prefer-free-format";
+                    String status = "";
+
+                    // check binaries
+                    if(!System.IO.File.Exists(config.exec_YTDL))
+                        throw new Exception("YT-DL Executable configured incorrectly");
+                    
+                    bool hasid3v2 = System.IO.File.Exists(config.exec_ID3);
+                    
+
+                    // Ensure proper / separator
+                    data.targetfolder = String.Join("/", data.targetfolder.Split("/", StringSplitOptions.RemoveEmptyEntries));
+                    String targetPath = data.targetlibrary.EndsWith("/") ? data.targetlibrary + data.targetfolder : data.targetlibrary + "/" + data.targetfolder;
+                    // Create Folder if it doesn't exist
+                    if(!System.IO.Directory.CreateDirectory(targetPath).Exists)
+                        throw new Exception("Directory could not be created");
+
+
+                    // Check for tags
+                    bool hasTags = 1 < (data.title.Length + data.album.Length + data.artist.Length + data.track.ToString().Length);
+
+                    // Save file with ytdlp as mp4 or mp3 depending on audioonly and free format preference
+                    String targetFilename;
+                    String targetExtension = (data.preferfreeformat ? (data.audioonly ? @".ogg" : @".webm") : (data.audioonly ? @".mp3" : @".mp4"));
+
+                    if (!String.IsNullOrWhiteSpace(data.targetfilename))
+                        targetFilename = System.IO.Path.Combine(targetPath, $"{data.targetfilename}");
+                    else if (data.audioonly && hasTags && data.title.Length > 1) // Use title Tag for filename
+                        targetFilename = System.IO.Path.Combine(targetPath, $"{data.title}");
+                    else // Use YTID as filename
+                        targetFilename = System.IO.Path.Combine(targetPath, $"{data.ytid}");
+
+                    // Check if filename exists
+                    if(System.IO.File.Exists(targetFilename))
+                        throw new Exception($"File {targetFilename} already exists");
+
+                    status += $"Filename: {targetFilename}<br>";
+
+                    String args;
+                    if(data.audioonly)
+                    {
+                        args = "-x";
+                        if(data.preferfreeformat)
+                            args += " --audio-format vorbis";
+                        else
+                            args += " --audio-format mp3";
+                        args += $" -o \"{targetFilename}.%(ext)s\" -- {data.ytid}";
+                    }
                     else
-                        args += " --audio-format mp3";
-                    args += $" -o \"{targetFilename}.%(ext)s\" {data.ytid}";
+                    {
+                        if(data.preferfreeformat)
+                            args = "--prefer-free-format";
+                        else
+                            args = "-f mp4";
+                        if(!string.IsNullOrEmpty(data.videoresolution))
+                            args += $" -S res:{data.videoresolution}";
+                        args += $" -o \"{targetFilename}-%(title)s.%(ext)s\" -- {data.ytid}";
+                    }
+
+                    status += $"Exec: {config.exec_YTDL} {args}<br>";
+
+                    var procyt = createProcess(config.exec_YTDL, args);
+                    procyt.Start();
+                    procyt.WaitForExit();
+
+                    // If audioonly and has tags
+                    if (data.audioonly && hasTags)
+                    {
+                        Process? tagsProcess = null;
+                        // Tag the mp3 file if id3v2
+                        if (!data.preferfreeformat && hasid3v2)
+                        {
+                            args = $"-a \"{data.artist}\" -A \"{data.album}\" -t \"{data.title}\" -T \"{data.track}\" \"{targetFilename}{targetExtension}\"";
+
+                            status += $"Exec: {config.exec_ID3} {args}<br>"; 
+
+                            tagsProcess = createProcess(config.exec_ID3, args);
+                        }
+                        {
+                            args = $"-w -t \"TITLE={data.title}\" -t \"ALBUM={data.album}\" -t \"TRACKNUMBER={data.track}\"";
+                            foreach (var artist in data.artist.Split(';'))
+                            {
+                                args += $" -t \"ARTIST={artist}\"";
+                            }
+                            args += $" \"{targetFilename}{targetExtension}\"";
+
+                            status += $"Exec: {config.exec_vorbiscomment} {args}<br>"; 
+
+                            tagsProcess = createProcess(config.exec_vorbiscomment, args);
+                        }
+                        tagsProcess.Start();
+                        tagsProcess.WaitForExit();
+                    }
+
+                    status += "<font color='green'>File Saved!</font>";
+
+                    response.Add("message", status);
                 }
-                else
-                {
-                    if(data.preferfreeformat)
-                        args = "--prefer-free-format";
-                    else
-                        args = "-f mp4";
-                    if(!string.IsNullOrEmpty(data.videoresolution))
-                        args += $" -S res:{data.videoresolution}";
-                    args += $" -o \"{targetFilename}-%(title)s.%(ext)s\" {data.ytid}";
-                }
-
-                status += $"Exec: {config.exec_YTDL} {args}<br>";
-
-                var procyt = createProcess(config.exec_YTDL, args);
-                procyt.Start();
-                procyt.WaitForExit();
-
-                // If audioonly AND id3v2 AND tags are set - Tag the mp3 file
-                if (data.audioonly && hasid3v2 && hasTags)
-                {
-                    args = $"-a \"{data.artist}\" -A \"{data.album}\" -t \"{data.title}\" -T \"{data.track}\" \"{targetFilename}{targetExtension}\"";
-
-                    status += $"Exec: {config.exec_ID3} {args}<br>"; 
-
-                    var procid3 = createProcess(config.exec_ID3, args);
-                    procid3.Start();
-                    procid3.WaitForExit();
-                }
-
-                status += "<font color='green'>File Saved!</font>";
-
-                response.Add("message", status);
                 return Ok(response);
             }
             catch(Exception e)

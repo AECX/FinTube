@@ -10,7 +10,7 @@
             <div class="content-primary">
                 <form id="FinTubeConfigForm">
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="exec_YTDL">Exec YT-DL</label>
+                        <label class="inputLabel inputLabelUnfocused" for="exec_YTDL">Exec YT-DLP</label>
                         <input id="exec_YTDL" name="exec_YTDL" type="text" is="emby-input" />
                         <div class="fieldDescription">The executable filepath to youtube-dl/yt-dlp</div>
                     </div>
@@ -18,6 +18,11 @@
                         <label class="inputLabel inputLabelUnfocused" for="exec_ID3">Exec ID3</label>
                         <input id="exec_ID3" name="exec_ID3" type="text" is="emby-input" />
                         <div class="fieldDescription">The executable filepath to id3v2</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="exec_vorbiscomment">Exec vorbiscomment</label>
+                        <input id="exec_vorbiscomment" name="exec_vorbiscomment" type="text" is="emby-input" />
+                        <div class="fieldDescription">The executable filepath to vorbiscomment</div>
                     </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
@@ -38,6 +43,7 @@
                     ApiClient.getPluginConfiguration(TubeFinConfig.pluginUniqueId).then(function (config) {
                         document.querySelector('#exec_YTDL').value = config.exec_YTDL;
                         document.querySelector('#exec_ID3').value = config.exec_ID3;
+                        document.querySelector('#exec_vorbiscomment').value = config.exec_vorbiscomment;
                         Dashboard.hideLoadingMsg();
                     });
                 });
@@ -48,6 +54,7 @@
                 ApiClient.getPluginConfiguration(TubeFinConfig.pluginUniqueId).then(function (config) {
                     config.exec_YTDL = document.querySelector('#exec_YTDL').value;
                     config.exec_ID3 = document.querySelector('#exec_ID3').value;
+                    config.exec_vorbiscomment = document.querySelector('#exec_vorbiscomment').value;
                     ApiClient.updatePluginConfiguration(TubeFinConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
