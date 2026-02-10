@@ -110,10 +110,11 @@ public class FinTubeActivityController : ControllerBase
 
                 status += $"Filename: {targetFilename}<br>";
 
-                String args;
+                // Use built-in ffmpeg
+                String args = "--ffmpeg-location /usr/lib/jellyfin-ffmpeg/ffmpeg";
                 if(data.audioonly)
                 {
-                    args = "-x";
+                    args += " -x";
                     if(data.preferfreeformat)
                         args += " --prefer-free-format";
                     else
@@ -123,9 +124,9 @@ public class FinTubeActivityController : ControllerBase
                 else
                 {
                     if(data.preferfreeformat)
-                        args = "--prefer-free-format";
+                        args += " --prefer-free-format";
                     else
-                        args = "-f mp4";
+                        args += " -f mp4";
                     if(!string.IsNullOrEmpty(data.videoresolution))
                         args += $" -S res:{data.videoresolution}";
                     args += $" -o \"{targetFilename}-%(title)s.%(ext)s\" {data.ytid}";
