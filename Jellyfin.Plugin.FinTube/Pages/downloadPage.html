@@ -34,6 +34,12 @@
 						<div class="fieldDescription">This is the filename if you want to override the yt-dl(p) default (optional)</div>
 					</div>
 
+					<div class="inputContainer">
+						<label class="inputLabel" for="fintube-ytdlpargs">Command Line Arguments</label>
+						<input id="fintube-ytdlpargs" class="emby-input" name="fintube-ytdlpargs" />
+						<div class="fieldDescription">(Advanced) To pass custom command line arguments to yt-dlp</div>
+					</div>
+
 					<div class="checkboxContainer checkboxContainer-withDescription">
 						<label class="emby-checkbox-label">
 							<input id="fintube-preferfreeformat" name="preferfreeformat" type="checkbox" is="emby-checkbox" data-embycheckbox="true" class="emby-checkbox">
@@ -67,9 +73,9 @@
 						</div>
 					</div>
 
-					<div id="fintube-audiosettings" hidden>						
+					<div id="fintube-audiosettings" hidden>
 						<h3>Audio Settings (Require id3v2 to be configured properly)</h3>
-						
+
 						<div class="inputContainer">
 							<label class="inputLabel">Artist</label>
 							<input id="fintube-artist" class="emby-input" name="fintube-artist" />
@@ -140,7 +146,7 @@
 
 					document.getElementById('preview').onload = function(e) {
 						let submitbtn = document.getElementById('fintube-submit');
-						
+
 						if(this.width == 120)
 							submitbtn.setAttribute('disabled', true);
 						else
@@ -178,7 +184,7 @@
 								"title": 				getfintubeValue("title"),
 								"track":				Number(getfintubeValue("track"))
 							}
-						
+
 
 						let url = "fintube/submit_dl";
 						url = window.ApiClient.getUrl(url);
@@ -213,5 +219,5 @@
 				</script>
 			</div>
         </div>
-    </div> 
+    </div>
 </div>
